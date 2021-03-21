@@ -125,14 +125,13 @@ class Product(models.Model):
 
 class Notebook(Product):
     diagonal = models.CharField(max_length=255, verbose_name="Diagonal")
-    display_type = models.CharField(max_length=255, verbose_name="Display "
-                                                                 "type")
-    processor_freq = models.CharField(max_length=255,
-                                      verbose_name="Processor freq")
+    display = models.CharField(max_length=255, verbose_name="Display")
+    cpu = models.CharField(max_length=255,
+                                      verbose_name="CPU")
     ram = models.CharField(max_length=255, verbose_name="Ram")
     video = models.CharField(max_length=255, verbose_name="Graphics card")
-    time_without_charge = models.CharField(max_length=255,
-                                           verbose_name="Battery life")
+    battery = models.CharField(max_length=255,
+                                           verbose_name="Battery")
 
     def __str__(self):
         return "{} : {}".format(self.category.name, self.title)
@@ -143,18 +142,18 @@ class Notebook(Product):
 
 class Smartphone(Product):
     diagonal = models.CharField(max_length=255, verbose_name="Diagonal")
-    display_type = models.CharField(max_length=255,
-                                    verbose_name="Display type")
+    display = models.CharField(max_length=255,
+                                    verbose_name="Display")
     resolution = models.CharField(max_length=255, verbose_name="Resolution")
-    accum_volume = models.CharField(max_length=255,
-                                    verbose_name="Accum volume")
+    battery = models.CharField(max_length=255,
+                                    verbose_name="Battery")
     ram = models.CharField(max_length=255, verbose_name="Ram")
     sd = models.BooleanField(default=True)
-    sd_volume = models.CharField(max_length=255, verbose_name="SD volume")
-    main_cam_mp = models.CharField(max_length=255,
-                                   verbose_name="Main cam max resolution")
-    frontal_cam_mp = models.CharField(max_length=255,
-                                      verbose_name="Frontal cam max resolution")
+    storage = models.CharField(max_length=255, verbose_name="Storage")
+    rear_cam = models.CharField(max_length=255,
+                                   verbose_name="Rear camera")
+    front_cam = models.CharField(max_length=255,
+                                      verbose_name="Front camera")
 
     def __str__(self):
         return "{} : {}".format(self.category.name, self.title)

@@ -2,8 +2,10 @@ from django.shortcuts import render
 from django.views.generic import DetailView
 from .models import Notebook, Smartphone
 
+
 def test_view(request):
     return render(request, "base.html", {})
+
 
 class ProductDetailView(DetailView):
     CT_MODEL_MODEL_CLASS = {
