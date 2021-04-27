@@ -22,7 +22,7 @@
 `python manage.py migrate`      
 
 
-- *for the first start, you need to create a superuser:*    
+- *For the first start, you need to create a superuser:*    
 `python manage.py createsuperuser`
 
 

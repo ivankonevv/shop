@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{#{% load specifications %}#}
 {% block content %}
   <nav aria-label="breadcrumb" class="mt-3">
     <ol class="breadcrumb">
@@ -18,8 +18,13 @@
       <h3>{{ product.title }}</h3>
       <p>Price: {{ product.price }} $</p>
       <p>Description: {{ product.description }}</p>
+      <hr>
+      <a href="{% url 'add_to_cart' ct_model=ct_model slug=product.slug %}"><button class="btn btn-danger">Add to
+        cart</button></a>
     </div>
     <p class="mt-4">Specifications: </p>
+
+{#    {{ product|product_spec }}#}
 
     {% if product.category.slug == 'notebooks' %}
       {% include 'notebook_spec.html' %}
