@@ -1,13 +1,14 @@
 from django.db import transaction
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.views.generic import DetailView, View
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
-from .models import Notebook, Smartphone, Category, LatestProducts, CartProduct, Customer
+from .models import Notebook, Smartphone, Category, Order, LatestProducts, CartProduct, Customer
 from .mixins import CategoryDetailMixin, CartMixin
 from .form import OrderForm
 from .utils import recalc_cart
+import stripe
 
 
 class BaseView(CartMixin, View):
@@ -46,7 +47,6 @@ class ProductDetailView(CartMixin, CategoryDetailMixin, DetailView):
 
 
 class CategoryDetailView(CartMixin, CategoryDetailMixin, DetailView):
-
     model = Category
     queryset = Category.objects.all()
     context_object_name = 'category'
@@ -62,7 +62,6 @@ class CategoryDetailView(CartMixin, CategoryDetailMixin, DetailView):
 class AddToCartView(CartMixin, View):
 
     def get(self, request, *args, **kwargs):
-
         ct_model, product_slug = kwargs.get('ct_model'), kwargs.get('slug')
         content_type = ContentType.objects.get(model=ct_model)
         product = content_type.model_class().objects.get(slug=product_slug)
@@ -86,7 +85,7 @@ class DeleteFromCartView(CartMixin, View):
         ct_model, product_slug = kwargs.get('ct_model'), kwargs.get('slug')
         content_type = ContentType.objects.get(model=ct_model)
         product = content_type.model_class().objects.get(slug=product_slug)
-        cart_product= CartProduct.objects.get(
+        cart_product = CartProduct.objects.get(
             user=self.cart.owner,
             cart=self.cart,
             content_type=content_type,
@@ -135,12 +134,22 @@ class CartView(CartMixin, View):
 class CheckoutView(CartMixin, View):
 
     def get(self, request, *args, **kwargs):
+        stripe.api_key = \
+            'sk_test_51ImhpxFJhwR6kFxp5AoWUfaI6ldoPNgQmZyHjgpAqlX0LXQYabxKUOEvFYEdWFqB3CkqZ2bIXx685JvlS9g14FZw00zeI1Kv65'
+
+        intent = stripe.PaymentIntent.create(
+            amount=int(self.cart.final_price * 100),
+            currency='usd',
+            metadata={'integration_check': 'accept_a_payment'},
+        )
+
         categories = Category.objects.get_categories_for_left_sidebar()
         form = OrderForm(request.POST or None)
         context = {
             'cart': self.cart,
             'categories': categories,
-            'form': form
+            'form': form,
+            'client_secret': intent.client_secret
         }
         return render(request, 'checkout.html', context)
 
@@ -170,3 +179,25 @@ class MakeOrderView(CartMixin, View):
             messages.add_message(request, messages.INFO, 'Your order has been successfully sent!')
             return HttpResponseRedirect('/')
         return HttpResponseRedirect('/checkout/')
+
+
+class PayedOnlineOrderView(CartMixin, View):
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        customer = Customer.objects.get(user=request.user)
+        new_order = Order()
+        new_order.customer = customer
+        new_order.first_name = customer.user.first_name
+        new_order.last_name = customer.user.last_name
+        new_order.phone = customer.phone
+        new_order.address = customer.address
+        new_order.buying_type = self.request.POST.get('buying_type')
+        new_order.save()
+        self.cart.in_order = True
+        self.cart.save()
+        new_order.cart = self.cart
+        new_order.status = Order.STATUS_PAYED
+        new_order.save()
+        customer.orders.add(new_order)
+        return JsonResponse({"status": "payed"})
