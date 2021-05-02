@@ -2,6 +2,17 @@
 
 {% block content %}
 <h3 class="text-center mt-5 mb-5">Your Cart {% if not cart.products.count %} empty {% endif %}</h3>
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>{{ message }}</strong>
+        <button type="button" class="close" data-dismiss="alert" aria-label="close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% if cart.products.count %}
    <table class="table">
       <thead>
         <tr>
@@ -10,6 +21,7 @@
           <th scope="col">Price</th>
           <th scope="col">Count</th>
           <th scope="col">Final price</th>
+          <th scope="col">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -18,11 +30,31 @@
           <th scope="row">{{ item.content_object.title }}</th>
           <td class="w-25"><img src="{{ item.content_object.image.url }}" class="img-fluid"></td>
           <td>${{ item.content_object.price }}</td>
-          <td>{{ item.qty }}</td>
+          <td>
+            <form action="{% url 'change_qty' ct_model=item.content_object.get_model_name slug=item.content_object.slug %}" method="post">
+              {% csrf_token %}
+              <input type="number" class="form-control" name="qty" style="width: 70px" min="1" value="{{ item.qty }}">
+              <br>
+              <input type="submit" class="btn btn-primary" value="Change count">
+            </form>
+          </td>
           <td>${{ item.final_price }}</td>
+          <td>
+            <a href="
+{% url 'delete_from_cart' ct_model=item.content_object.get_model_name slug=item.content_object.slug %}"><button
+                    class="btn
+            btn-danger">Delete</button></a>
+          </td>
         </tr>
         {% endfor %}
+        <tr>
+          <td colspan="2"></td>
+          <td>Total:</td>
+          <td>{{ cart.total_products }}</td>
+          <td><strong>${{ cart.final_price }}</strong></td>
+          <td><a href="{% url 'checkout' %}"><button class="btn btn-primary">Checkout</button></a></td>
+        </tr>
       </tbody>
     </table>
-
+  {% endif %}
 {% endblock content %}

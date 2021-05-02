@@ -63,6 +63,16 @@
 
     <div class="col-lg-9">
       {% block content %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <strong>{{ message }}</strong>
+              <button type="button" class="close" data-dismiss="alert" aria-label="close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          {% endfor %}
+        {% endif %}
         <div id="carouselExampleIndicators" class="carousel slide my-4"
              data-ride="carousel">
           <ol class="carousel-indicators">
@@ -112,6 +122,9 @@
                     <a href="{{ product.get_absolute_url }}">{{ product.title }}</a>
                   </h4>
                   <h5>${{ product.price }}</h5>
+                  <a href="{% url 'add_to_cart' ct_model=product.get_model_name slug=product.slug %}">
+                    <button class="btn btn-danger">Add to cart</button>
+                  </a>
                 </div>
               </div>
             </div>

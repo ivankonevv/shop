@@ -2,13 +2,16 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils import timezone
 from PIL import Image
 from django.urls import reverse
+
 # from io import BytesIO
 # import sys
 # from django.core.files.uploadedfile import InMemoryUploadedFile
 
 User = get_user_model()
+
 
 def get_models_for_count(*model_names):
     return [models.Count(model_name) for model_name in model_names]
@@ -48,7 +51,7 @@ class LatestProductsManager:
                     return sorted(
                         products, key=lambda x:
                         x.__class__.meta.model_name.startswith(
-                                      with_respect_to),
+                            with_respect_to),
                         reverse=True)
         return products
 
@@ -58,7 +61,6 @@ class LatestProducts:
 
 
 class CategoryManager(models.Manager):
-
     CATEGORY_NAME_COUNT_NAME = {
         'Notebooks': 'notebook__count',
         'Smartphones': 'smartphone__count'
@@ -150,16 +152,19 @@ class Product(models.Model):
         # )
         super().save(*args, **kwargs)
 
+    def get_model_name(self):
+        return self.__class__.__name__.lower()
+
 
 class Notebook(Product):
     diagonal = models.CharField(max_length=255, verbose_name="Diagonal")
     display = models.CharField(max_length=255, verbose_name="Display")
     cpu = models.CharField(max_length=255,
-                                      verbose_name="CPU")
+                           verbose_name="CPU")
     ram = models.CharField(max_length=255, verbose_name="Ram")
     video = models.CharField(max_length=255, verbose_name="Graphics card")
     battery = models.CharField(max_length=255,
-                                           verbose_name="Battery")
+                               verbose_name="Battery")
 
     def __str__(self):
         return "{} : {}".format(self.category.name, self.title)
@@ -171,17 +176,17 @@ class Notebook(Product):
 class Smartphone(Product):
     diagonal = models.CharField(max_length=255, verbose_name="Diagonal")
     display = models.CharField(max_length=255,
-                                    verbose_name="Display")
+                               verbose_name="Display")
     resolution = models.CharField(max_length=255, verbose_name="Resolution")
     battery = models.CharField(max_length=255,
-                                    verbose_name="Battery")
+                               verbose_name="Battery")
     ram = models.CharField(max_length=255, verbose_name="Ram")
     sd = models.BooleanField(default=True)
     storage = models.CharField(max_length=255, verbose_name="Storage")
     rear_cam = models.CharField(max_length=255,
-                                   verbose_name="Rear camera")
+                                verbose_name="Rear camera")
     front_cam = models.CharField(max_length=255,
-                                      verbose_name="Front camera")
+                                 verbose_name="Front camera")
 
     def __str__(self):
         return "{} : {}".format(self.category.name, self.title)
@@ -231,11 +236,58 @@ class Cart(models.Model):
 class Customer(models.Model):
     user = models.ForeignKey(User, verbose_name="User",
                              on_delete=models.CASCADE)
-    phone = models.CharField(max_length=20, verbose_name="Phone")
-    address = models.CharField(max_length=255, verbose_name="Address")
+    phone = models.CharField(max_length=20, verbose_name="Phone", null=True, blank=True)
+    address = models.CharField(max_length=255, verbose_name="Address", null=True, blank=True)
+    orders = models.ManyToManyField('Order', verbose_name='Customer orders', related_name='related_customer')
 
     def __str__(self):
         return "Customer: {} {}".format(self.user.first_name,
                                         self.user.last_name)
 
 
+class Order(models.Model):
+    STATUS_NEW = 'new'
+    STATUS_IN_PROGRESS = 'in_progress'
+    STATUS_READY = 'is_ready'
+    STATUS_COMPLETED = 'completed'
+
+    BUYING_TYPE_SELF = 'self'
+    BUYING_TYPE_DELIVERY = 'delivery'
+
+    BUYING_TYPE_CHOICES = (
+        (BUYING_TYPE_SELF, 'Pickup'),
+        (BUYING_TYPE_DELIVERY, 'Delivery')
+    )
+
+    STATUS_CHOICES = (
+        (STATUS_NEW, 'New order'),
+        (STATUS_IN_PROGRESS, 'Order in progress'),
+        (STATUS_READY, 'Order is ready'),
+        (STATUS_COMPLETED, 'Order completed')
+    )
+
+    customer = models.ForeignKey(Customer, verbose_name='Customer', related_name='related_orders',
+                                 on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=255, verbose_name='First Name')
+    last_name = models.CharField(max_length=255, verbose_name='Last Name')
+    phone = models.CharField(max_length=255, verbose_name='Phone')
+    cart = models.ForeignKey(Cart, verbose_name='Cart', on_delete=models.CASCADE, null=True, blank=True)
+    address = models.CharField(max_length=1024, verbose_name='Address', null=True, blank=True)
+    status = models.CharField(
+        max_length=100,
+        verbose_name='Order status',
+        choices=STATUS_CHOICES,
+        default=STATUS_NEW
+    )
+    buying_type = models.CharField(
+        max_length=100,
+        verbose_name='Order type',
+        choices=BUYING_TYPE_CHOICES,
+        default=BUYING_TYPE_SELF
+    )
+    comment = models.TextField(verbose_name='Order comment', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now=True, verbose_name='Created')
+    order_date = models.DateField(verbose_name='Date of receipt of the order', default=timezone.now)
+
+    def __str__(self):
+        return str(self.id)
