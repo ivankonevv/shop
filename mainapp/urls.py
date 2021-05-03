@@ -1,5 +1,5 @@
 from django.urls import path
-
+from django.contrib.auth.views import LogoutView
 from .views import (
     BaseView,
     ProductDetailView,
@@ -10,20 +10,25 @@ from .views import (
     ChangeQTYView,
     CheckoutView,
     MakeOrderView,
-    PayedOnlineOrderView
+    LoginView,
+    RegistrationView,
+    ProfileView
 )
 
 urlpatterns = [
     path('', BaseView.as_view(), name="base"),
-    path('products/<str:ct_model>/<str:slug>/', ProductDetailView.as_view(),
+    path('products/<str:slug>/', ProductDetailView.as_view(),
          name='product_detail'),
     path('category/<str:slug>/', CategoryDetailView.as_view(), name='category_detail'),
     path('cart/', CartView.as_view(), name='cart'),
-    path('add-to-cart/<str:ct_model>/<str:slug>/', AddToCartView.as_view(), name='add_to_cart'),
-    path('remove-from-cart/<str:ct_model>/<str:slug>/', DeleteFromCartView.as_view(), name='delete_from_cart'),
-    path('change-qty/<str:ct_model>/<str:slug>/', ChangeQTYView.as_view(), name='change_qty'),
+    path('add-to-cart/<str:slug>/', AddToCartView.as_view(), name='add_to_cart'),
+    path('remove-from-cart/<str:slug>/', DeleteFromCartView.as_view(), name='delete_from_cart'),
+    path('change-qty/<str:slug>/', ChangeQTYView.as_view(), name='change_qty'),
     path('checkout/', CheckoutView.as_view(), name='checkout'),
     path('make-order/', MakeOrderView.as_view(), name='make_order'),
-    path('payed-online-order/', PayedOnlineOrderView.as_view(), name='payed_online_order'),
+    path('login/', LoginView.as_view(), name='signin'),
+    path('logout/', LogoutView.as_view(next_page='/'), name='logout'),
+    path('signup/', RegistrationView.as_view(), name='signup'),
+    path('profile/', ProfileView.as_view(), name='profile')
 ]
 

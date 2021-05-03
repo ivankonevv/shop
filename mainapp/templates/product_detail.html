@@ -19,18 +19,8 @@
       <p>Price: {{ product.price }} $</p>
       <p>Description: {{ product.description }}</p>
       <hr>
-      <a href="{% url 'add_to_cart' ct_model=ct_model slug=product.slug %}"><button class="btn btn-danger">Add to
+      <a href="{% url 'add_to_cart' slug=product.slug %}"><button class="btn btn-danger">Add to
         cart</button></a>
     </div>
-    <p class="mt-4">Specifications: </p>
-
-{#    {{ product|product_spec }}#}
-
-    {% if product.category.slug == 'notebooks' %}
-      {% include 'notebook_spec.html' %}
-    {% else %}
-      {% include 'smartphone_spec.html' %}
-    {% endif %}
-
   </div>
 {% endblock content %}

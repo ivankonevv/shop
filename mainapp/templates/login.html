@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+  <div class="row" style="margin-bottom: 300px; margin-top: 180px">
+   <div class="col-md-6 offset-md-3">
+     <h3 class="text-center">SignIn</h3>
+     <hr>
+     <form action="" method="post">
+       {% csrf_token %}
+       {{ form|crispy }}
+       <input type="submit" class="btn btn-success" value="Sign In">
+     </form>
+   </div>
+  </div>
+{% endblock %}
